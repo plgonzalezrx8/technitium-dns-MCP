@@ -13,3 +13,10 @@ def validate_dns_name(value: str) -> str:
     if any(not label or not LABEL_RE.match(label) for label in labels):
         raise ValueError("Invalid DNS name")
     return name
+
+
+def validate_zone_name(value: str) -> str:
+    zone = validate_dns_name(value)
+    if len(zone) > 253:
+        raise ValueError("Invalid zone name")
+    return zone
