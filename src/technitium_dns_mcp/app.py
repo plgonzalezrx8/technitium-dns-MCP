@@ -29,6 +29,8 @@ from technitium_dns_mcp.tools import (
     register_dhcp_tools,
     register_diagnostic_tools,
     register_dns_client_tools,
+    register_log_mutation_tools,
+    register_log_tools,
     register_settings_mutation_tools,
     register_settings_tools,
     register_zone_dnssec_mutation_tools,
@@ -73,6 +75,7 @@ def build_mcp_server(
         register_app_tools(mcp, resolved_client)
         register_dns_client_tools(mcp, resolved_client)
         register_settings_tools(mcp, resolved_client)
+        register_log_tools(mcp, resolved_client)
         register_dhcp_tools(mcp, resolved_client)
         register_admin_session_tools(mcp, resolved_client)
         register_admin_user_tools(mcp, resolved_client)
@@ -87,6 +90,7 @@ def build_mcp_server(
             register_blocked_mutation_tools(mcp, resolved_client)
             register_app_mutation_tools(mcp, resolved_client)
             register_settings_mutation_tools(mcp, resolved_client)
+            register_log_mutation_tools(mcp, resolved_client)
             register_dhcp_mutation_tools(mcp, resolved_client)
             register_admin_session_mutation_tools(mcp, resolved_client)
             register_admin_user_mutation_tools(mcp, resolved_client)

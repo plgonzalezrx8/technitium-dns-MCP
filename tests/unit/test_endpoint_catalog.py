@@ -67,6 +67,12 @@ def test_get_endpoint_returns_existing_tool_metadata() -> None:
         ("dns_install_app", "/api/apps/install", "mutation", "confirm"),
         ("dns_resolve_query", "/api/dnsClient/resolve", "readonly", "none"),
         ("dns_get_tsig_key_names", "/api/settings/getTsigKeyNames", "readonly", "none"),
+        ("dns_list_logs", "/api/logs/list", "readonly", "none"),
+        ("dns_download_log", "/api/logs/download", "readonly", "none"),
+        ("dns_delete_log", "/api/logs/delete", "destructive", "destructive"),
+        ("dns_delete_all_logs", "/api/logs/deleteAll", "destructive", "destructive"),
+        ("dns_query_logs", "/api/logs/query", "readonly", "none"),
+        ("dns_export_query_logs", "/api/logs/export", "readonly", "none"),
         ("dns_set_settings", "/api/settings/set", "mutation", "confirm"),
         ("dns_backup_settings", "/api/settings/backup", "admin", "critical"),
         ("dns_restore_settings", "/api/settings/restore", "admin", "critical"),
@@ -126,7 +132,7 @@ def test_get_endpoint_returns_existing_tool_metadata() -> None:
         ),
     ],
 )
-def test_get_endpoint_covers_phase1_to_phase6_tools(
+def test_get_endpoint_covers_phase1_to_phase8_tools(
     *, tool_name: str, api_path: str, classification: str, confirmation_mode: str
 ) -> None:
     from technitium_dns_mcp.client.endpoint_catalog import get_endpoint
@@ -163,6 +169,10 @@ def test_list_endpoints_can_filter_by_classification() -> None:
         "dns_get_app_config",
         "dns_resolve_query",
         "dns_get_tsig_key_names",
+        "dns_list_logs",
+        "dns_download_log",
+        "dns_query_logs",
+        "dns_export_query_logs",
         "dns_list_dhcp_leases",
         "dns_list_dhcp_scopes",
         "dns_get_dhcp_scope",
@@ -199,6 +209,8 @@ def test_list_endpoints_can_filter_destructive_tools() -> None:
         "dns_delete_blocked_zone",
         "dns_flush_blocked_zones",
         "dns_uninstall_app",
+        "dns_delete_log",
+        "dns_delete_all_logs",
         "dns_remove_dhcp_lease",
         "dns_remove_dhcp_reserved_lease",
         "dns_delete_dhcp_scope",
@@ -238,6 +250,21 @@ def test_list_endpoints_can_filter_admin_tools() -> None:
         "dns_promote_to_cluster_primary",
         "dns_update_cluster_node_ip_addresses",
     } <= admin_tools
+
+
+def test_list_endpoints_can_filter_logs_family() -> None:
+    from technitium_dns_mcp.client.endpoint_catalog import list_endpoints
+
+    log_tools = {endpoint.tool_name for endpoint in list_endpoints(family="logs")}
+
+    assert log_tools == {
+        "dns_list_logs",
+        "dns_download_log",
+        "dns_delete_log",
+        "dns_delete_all_logs",
+        "dns_query_logs",
+        "dns_export_query_logs",
+    }
 
 
 def test_get_endpoint_raises_helpful_error_for_unknown_tool() -> None:

@@ -31,6 +31,7 @@ from technitium_dns_mcp.tools.cache import register_cache_mutation_tools, regist
 from technitium_dns_mcp.tools.dhcp import register_dhcp_mutation_tools, register_dhcp_tools
 from technitium_dns_mcp.tools.diagnostics import register_diagnostic_tools
 from technitium_dns_mcp.tools.dns_client import register_dns_client_tools
+from technitium_dns_mcp.tools.logs import register_log_mutation_tools, register_log_tools
 from technitium_dns_mcp.tools.mutations import register_zone_mutation_tools
 from technitium_dns_mcp.tools.settings import (
     register_settings_mutation_tools,
@@ -65,6 +66,8 @@ __all__ = [
     "register_dhcp_tools",
     "register_diagnostic_tools",
     "register_dns_client_tools",
+    "register_log_mutation_tools",
+    "register_log_tools",
     "register_settings_mutation_tools",
     "register_settings_tools",
     "register_zone_dnssec_mutation_tools",

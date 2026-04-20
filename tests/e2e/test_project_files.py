@@ -34,3 +34,14 @@ def test_readme_documents_safety_and_startup() -> None:
     assert "TECHNITIUM_READONLY" in readme
     assert "confirm=True" in readme
     assert "docker compose up --build" in readme
+    assert "dns_list_logs" in readme
+    assert "api-coverage.md" in readme
+
+
+def test_api_coverage_doc_maps_core_families() -> None:
+    coverage_doc = (ROOT / "docs" / "api-coverage.md").read_text(encoding="utf-8")
+
+    assert "# API Coverage" in coverage_doc
+    assert "dns_list_logs" in coverage_doc
+    assert "/api/logs/query" in coverage_doc
+    assert "readonly-only when TECHNITIUM_READONLY=true" in coverage_doc
