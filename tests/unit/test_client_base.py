@@ -1,3 +1,5 @@
+from urllib.parse import parse_qs
+
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -79,3 +81,38 @@ async def test_call_or_throw_can_disable_ssl_verification(monkeypatch: pytest.Mo
         "data": {"token": "token-123"},
     }
     assert result == {"version": "14.3"}
+
+
+@pytest.mark.asyncio
+async def test_request_serializes_optional_params_and_skips_none_values(
+    httpx_mock: HTTPXMock,
+) -> None:
+    from technitium_dns_mcp.client.base import TechnitiumClient
+
+    httpx_mock.add_response(
+        url="http://192.168.1.248:5380/api/zones/create",
+        json={"status": "ok", "response": {"zone": {"name": "example.com"}}},
+    )
+
+    client = TechnitiumClient(base_url="http://192.168.1.248:5380", token="token-123")
+    result = await client.request(
+        "/api/zones/create",
+        {
+            "zone": "example.com",
+            "type": "Primary",
+            "disabled": False,
+            "ttl": 3600,
+            "comment": None,
+        },
+    )
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert parse_qs(request.content.decode()) == {
+        "disabled": ["false"],
+        "token": ["token-123"],
+        "ttl": ["3600"],
+        "type": ["Primary"],
+        "zone": ["example.com"],
+    }
+    assert result == {"zone": {"name": "example.com"}}
