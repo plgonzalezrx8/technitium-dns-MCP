@@ -35,6 +35,7 @@ def build_mcp_server(
             resolved_client = TechnitiumClient(
                 base_url=resolved_settings.technitium_url,
                 token=resolved_settings.technitium_token or "",
+                verify=resolved_settings.technitium_verify_ssl,
             )
 
     if resolved_client is not None:

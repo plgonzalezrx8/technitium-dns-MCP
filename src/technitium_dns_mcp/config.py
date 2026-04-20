@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     technitium_token: str | None = Field(default=None, alias="TECHNITIUM_TOKEN")
     technitium_token_file: Path | None = Field(default=None, alias="TECHNITIUM_TOKEN_FILE")
     technitium_readonly: bool = Field(default=False, alias="TECHNITIUM_READONLY")
+    technitium_verify_ssl: bool = Field(default=True, alias="TECHNITIUM_VERIFY_SSL")
     technitium_log_level: str = Field(default="INFO", alias="TECHNITIUM_LOG_LEVEL")
     mcp_host: str = Field(default="0.0.0.0", alias="MCP_HOST")
     mcp_port: int = Field(default=8000, alias="MCP_PORT")

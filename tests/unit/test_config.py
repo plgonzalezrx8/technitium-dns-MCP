@@ -7,6 +7,7 @@ def test_load_settings_reads_token_from_environment(monkeypatch: pytest.MonkeyPa
     monkeypatch.setenv("TECHNITIUM_URL", "http://192.168.1.248:5380")
     monkeypatch.setenv("TECHNITIUM_TOKEN", "secret-token")
     monkeypatch.setenv("TECHNITIUM_READONLY", "true")
+    monkeypatch.setenv("TECHNITIUM_VERIFY_SSL", "false")
     monkeypatch.setenv("MCP_HOST", "127.0.0.1")
     monkeypatch.setenv("MCP_PORT", "9000")
 
@@ -17,6 +18,7 @@ def test_load_settings_reads_token_from_environment(monkeypatch: pytest.MonkeyPa
     assert settings.technitium_url == "http://192.168.1.248:5380"
     assert settings.technitium_token == "secret-token"
     assert settings.technitium_readonly is True
+    assert settings.technitium_verify_ssl is False
     assert settings.mcp_host == "127.0.0.1"
     assert settings.mcp_port == 9000
 
@@ -36,6 +38,21 @@ def test_load_settings_reads_token_from_file(
     settings = load_settings()
 
     assert settings.technitium_token == "file-token"
+
+
+def test_load_settings_defaults_ssl_verification_to_true(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TECHNITIUM_URL", "http://192.168.1.248:5380")
+    monkeypatch.setenv("TECHNITIUM_TOKEN", "secret-token")
+    monkeypatch.delenv("TECHNITIUM_VERIFY_SSL", raising=False)
+
+    from technitium_dns_mcp.config import load_settings
+
+    settings = load_settings()
+
+    assert settings.technitium_verify_ssl is True
+
 
 
 def test_load_settings_requires_url_and_auth(monkeypatch: pytest.MonkeyPatch) -> None:

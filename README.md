@@ -36,12 +36,21 @@ The server listens on `http://localhost:8000`.
 
 ```env
 TECHNITIUM_URL=http://192.168.1.248:5380
-TECHNITIUM_TOKEN=replace-me
+TECHNITIUM_TOKEN=***
 TECHNITIUM_READONLY=true
+TECHNITIUM_VERIFY_SSL=true
 TECHNITIUM_LOG_LEVEL=INFO
 MCP_HOST=0.0.0.0
 MCP_PORT=8000
 ```
+
+If Technitium is behind an internal certificate your container does not trust, set:
+
+```env
+TECHNITIUM_VERIFY_SSL=false
+```
+
+That is less safe than fixing trust properly, but it gets an internal lab deployment unstuck.
 
 If you prefer files over inline secrets:
 
