@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "technitium-dns-mcp"
+version = "0.1.0"
+description = "Python FastMCP server for managing Technitium DNS Server"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+  { name = "Pedro Gonzalez" },
+]
+dependencies = [
+  "fastmcp>=2.3.0",
+  "httpx>=0.28.0",
+  "pydantic>=2.11.0",
+  "pydantic-settings>=2.9.0",
+  "starlette>=0.46.0",
+  "uvicorn>=0.34.0",
+]
+
+[project.scripts]
+technitium-dns-mcp = "technitium_dns_mcp.__main__:main"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.15.0",
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.26.0",
+  "pytest-httpx>=0.35.0",
+  "ruff>=0.11.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/technitium_dns_mcp"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = ["src"]
+packages = ["technitium_dns_mcp"]
