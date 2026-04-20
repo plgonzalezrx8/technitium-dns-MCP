@@ -1,0 +1,94 @@
+from urllib.parse import parse_qs
+
+import pytest
+from fastmcp import Client
+
+from technitium_dns_mcp.app import build_mcp_server
+
+
+@pytest.mark.asyncio
+async def test_dns_list_cache_passes_optional_navigation_params(
+    monkeypatch: pytest.MonkeyPatch,
+    httpx_mock,
+) -> None:
+    monkeypatch.setenv("TECHNITIUM_URL", "http://dns.local:5380")
+    monkeypatch.setenv("TECHNITIUM_TOKEN", "token-123")
+    httpx_mock.add_response(
+        url="http://dns.local:5380/api/cache/list",
+        json={"status": "ok", "response": {"domain": "example.com", "zones": ["www.example.com"]}},
+    )
+
+    async with Client(build_mcp_server()) as client:
+        result = await client.call_tool(
+            "dns_list_cache",
+            {"domain": "example.com", "direction": "up"},
+        )
+
+    assert result.data == {"domain": "example.com", "zones": ["www.example.com"]}
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert parse_qs(request.content.decode()) == {
+        "direction": ["up"],
+        "domain": ["example.com"],
+        "token": ["token-123"],
+    }
+
+
+@pytest.mark.asyncio
+async def test_dns_delete_cached_zone_requires_destructive_confirmation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TECHNITIUM_URL", "http://dns.local:5380")
+    monkeypatch.setenv("TECHNITIUM_TOKEN", "token-123")
+    monkeypatch.setenv("TECHNITIUM_READONLY", "false")
+
+    async with Client(build_mcp_server()) as client:
+        with pytest.raises(Exception, match="destructive"):
+            await client.call_tool(
+                "dns_delete_cached_zone",
+                {"domain": "example.com", "confirm": False},
+            )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tool_name", "endpoint", "payload", "expected_params"),
+    [
+        (
+            "dns_delete_cached_zone",
+            "/api/cache/delete",
+            {"domain": "example.com", "confirm": True},
+            {"domain": ["example.com"]},
+        ),
+        (
+            "dns_flush_cache",
+            "/api/cache/flush",
+            {"confirm": True},
+            {},
+        ),
+    ],
+)
+async def test_cache_mutation_tools_call_expected_endpoints(
+    monkeypatch: pytest.MonkeyPatch,
+    httpx_mock,
+    *,
+    tool_name: str,
+    endpoint: str,
+    payload: dict[str, object],
+    expected_params: dict[str, list[str]],
+) -> None:
+    monkeypatch.setenv("TECHNITIUM_URL", "http://dns.local:5380")
+    monkeypatch.setenv("TECHNITIUM_TOKEN", "token-123")
+    monkeypatch.setenv("TECHNITIUM_READONLY", "false")
+    httpx_mock.add_response(
+        url=f"http://dns.local:5380{endpoint}",
+        json={"status": "ok", "response": {"ok": True}},
+    )
+
+    async with Client(build_mcp_server()) as client:
+        result = await client.call_tool(tool_name, payload)
+
+    assert result.data == {"ok": True}
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert parse_qs(request.content.decode()) == {"token": ["token-123"], **expected_params}

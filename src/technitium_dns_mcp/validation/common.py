@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from ipaddress import ip_address
+from pathlib import Path
 
 from technitium_dns_mcp.client.models import RequestParam, RequestParams
 
@@ -73,6 +76,19 @@ def normalize_optional_name(value: str | None, *, field_name: str) -> str | None
     return normalize_name(value, field_name=field_name)
 
 
+def normalize_csv_names(value: Sequence[str] | str, *, field_name: str) -> str:
+    if isinstance(value, str):
+        return normalize_name(value, field_name=field_name)
+
+    normalized_values = [
+        normalize_name(item, field_name=f"{field_name}[{index}]")
+        for index, item in enumerate(value)
+    ]
+    if not normalized_values:
+        raise ValueError(f"{field_name} is required")
+    return ",".join(normalized_values)
+
+
 def normalize_passthrough_value(value: object, *, field_name: str) -> RequestParam:
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
@@ -97,6 +113,34 @@ def normalize_passthrough_params(
             field_name=f"{field_name}.{normalized_key}",
         )
     return normalized
+
+
+def resolve_upload_content(
+    *,
+    file_path: str | None,
+    content_base64: str | None,
+    filename: str | None,
+    default_filename: str,
+    field_name: str,
+) -> tuple[str, bytes]:
+    if (file_path is None) == (content_base64 is None):
+        raise ValueError(
+            f"Provide exactly one of {field_name}_path or {field_name}_base64."
+        )
+
+    if file_path is not None:
+        path = Path(normalize_name(file_path, field_name=f"{field_name}_path"))
+        return (filename or path.name or default_filename, path.read_bytes())
+
+    if content_base64 is None:
+        raise AssertionError("unreachable")
+
+    raw_content = normalize_name(content_base64, field_name=f"{field_name}_base64")
+    try:
+        decoded = base64.b64decode(raw_content, validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError(f"{field_name}_base64 must be valid base64") from exc
+    return (filename or default_filename, decoded)
 
 
 def serialize_params(params: RequestParams | None) -> dict[str, str]:

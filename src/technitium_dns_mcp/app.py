@@ -7,7 +7,20 @@ from starlette.responses import JSONResponse
 from technitium_dns_mcp.client.base import TechnitiumClient
 from technitium_dns_mcp.config import Settings, load_settings
 from technitium_dns_mcp.tools import (
+    register_allowed_mutation_tools,
+    register_allowed_tools,
+    register_app_mutation_tools,
+    register_app_tools,
+    register_blocked_mutation_tools,
+    register_blocked_tools,
+    register_cache_mutation_tools,
+    register_cache_tools,
     register_diagnostic_tools,
+    register_dns_client_tools,
+    register_settings_mutation_tools,
+    register_settings_tools,
+    register_zone_dnssec_mutation_tools,
+    register_zone_dnssec_tools,
     register_zone_mutation_tools,
     register_zone_tools,
 )
@@ -41,8 +54,21 @@ def build_mcp_server(
     if resolved_client is not None:
         register_diagnostic_tools(mcp, resolved_client)
         register_zone_tools(mcp, resolved_client)
+        register_zone_dnssec_tools(mcp, resolved_client)
+        register_cache_tools(mcp, resolved_client)
+        register_allowed_tools(mcp, resolved_client)
+        register_blocked_tools(mcp, resolved_client)
+        register_app_tools(mcp, resolved_client)
+        register_dns_client_tools(mcp, resolved_client)
+        register_settings_tools(mcp, resolved_client)
         if resolved_settings is not None and not resolved_settings.technitium_readonly:
             register_zone_mutation_tools(mcp, resolved_client)
+            register_zone_dnssec_mutation_tools(mcp, resolved_client)
+            register_cache_mutation_tools(mcp, resolved_client)
+            register_allowed_mutation_tools(mcp, resolved_client)
+            register_blocked_mutation_tools(mcp, resolved_client)
+            register_app_mutation_tools(mcp, resolved_client)
+            register_settings_mutation_tools(mcp, resolved_client)
 
     return mcp
 

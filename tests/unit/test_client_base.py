@@ -116,3 +116,56 @@ async def test_request_serializes_optional_params_and_skips_none_values(
         "zone": ["example.com"],
     }
     assert result == {"zone": {"name": "example.com"}}
+
+
+@pytest.mark.asyncio
+async def test_call_or_throw_supports_multipart_file_uploads(httpx_mock: HTTPXMock) -> None:
+    from technitium_dns_mcp.client.base import TechnitiumClient
+
+    httpx_mock.add_response(
+        url="http://192.168.1.248:5380/api/apps/install",
+        json={"status": "ok", "response": {"installed": True}},
+    )
+
+    client = TechnitiumClient(base_url="http://192.168.1.248:5380", token="token-123")
+    result = await client.call_or_throw(
+        "/api/apps/install",
+        {"name": "sample-app"},
+        files={"file": ("sample-app.zip", b"zip-data", "application/zip")},
+    )
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert "multipart/form-data" in request.headers["content-type"]
+    assert b'name="token"' in request.content
+    assert b'name="name"' in request.content
+    assert b'filename="sample-app.zip"' in request.content
+    assert b'zip-data' in request.content
+    assert result == {"installed": True}
+
+
+@pytest.mark.asyncio
+async def test_download_returns_binary_content_and_metadata(httpx_mock: HTTPXMock) -> None:
+    from technitium_dns_mcp.client.base import TechnitiumClient
+
+    httpx_mock.add_response(
+        url="http://192.168.1.248:5380/api/settings/backup",
+        content=b"PK\x03\x04backup-data",
+        headers={
+            "content-type": "application/zip",
+            "content-disposition": "attachment;filename=example_backup.zip",
+        },
+    )
+
+    client = TechnitiumClient(base_url="http://192.168.1.248:5380", token="token-123")
+    result = await client.download("/api/settings/backup", {"dnsSettings": True})
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert parse_qs(request.content.decode()) == {
+        "dnsSettings": ["true"],
+        "token": ["token-123"],
+    }
+    assert result.content == b"PK\x03\x04backup-data"
+    assert result.content_type == "application/zip"
+    assert result.filename == "example_backup.zip"

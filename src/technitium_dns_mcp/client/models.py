@@ -14,6 +14,8 @@ type ConfirmationMode = Literal["none", "confirm", "destructive", "critical"]
 type ApiScalar = str | int | float | bool
 type RequestParam = ApiScalar | None
 type RequestParams = Mapping[str, RequestParam]
+type UploadFile = tuple[str, bytes, str]
+type UploadFiles = Mapping[str, UploadFile]
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,3 +37,10 @@ class EndpointMetadata:
     required_params: tuple[str, ...] = ()
     optional_params: tuple[str, ...] = ()
     confirmation_policy: ConfirmationPolicy = field(default_factory=ConfirmationPolicy)
+
+
+@dataclass(frozen=True, slots=True)
+class DownloadResponse:
+    content: bytes
+    content_type: str | None = None
+    filename: str | None = None
