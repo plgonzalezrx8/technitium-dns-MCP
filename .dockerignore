@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# Local env and editor junk
+.env
+.DS_Store
