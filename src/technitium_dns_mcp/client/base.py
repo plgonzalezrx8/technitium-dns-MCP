@@ -5,7 +5,12 @@ from typing import Any, cast
 import httpx
 
 from technitium_dns_mcp.client.errors import InvalidTokenError, TechnitiumApiError
-from technitium_dns_mcp.client.models import DownloadResponse, RequestParams, UploadFiles
+from technitium_dns_mcp.client.models import (
+    DownloadResponse,
+    RequestHeaders,
+    RequestParams,
+    UploadFiles,
+)
 from technitium_dns_mcp.validation.common import serialize_params
 
 
@@ -28,12 +33,18 @@ class TechnitiumClient:
         params: RequestParams | None = None,
         *,
         files: UploadFiles | None = None,
+        headers: RequestHeaders | None = None,
     ) -> httpx.Response:
         payload = {"token": self.token, **serialize_params(params)}
         async with httpx.AsyncClient(timeout=self.timeout, verify=self.verify) as client:
             if files is None:
-                return await client.post(f"{self.base_url}{path}", data=payload)
-            return await client.post(f"{self.base_url}{path}", data=payload, files=files)
+                return await client.post(f"{self.base_url}{path}", data=payload, headers=headers)
+            return await client.post(
+                f"{self.base_url}{path}",
+                data=payload,
+                files=files,
+                headers=headers,
+            )
 
     def _parse_json_payload(self, data: dict[str, Any]) -> dict[str, Any]:
         status = data.get("status")
@@ -65,8 +76,9 @@ class TechnitiumClient:
         params: RequestParams | None = None,
         *,
         files: UploadFiles | None = None,
+        headers: RequestHeaders | None = None,
     ) -> dict[str, Any]:
-        response = await self._post(path, params, files=files)
+        response = await self._post(path, params, files=files, headers=headers)
         data = cast(dict[str, Any], response.json())
         return self._parse_json_payload(data)
 
@@ -74,8 +86,10 @@ class TechnitiumClient:
         self,
         path: str,
         params: RequestParams | None = None,
+        *,
+        headers: RequestHeaders | None = None,
     ) -> DownloadResponse:
-        response = await self._post(path, params)
+        response = await self._post(path, params, headers=headers)
         try:
             data = cast(dict[str, Any], response.json())
         except Exception:
@@ -97,5 +111,6 @@ class TechnitiumClient:
         params: RequestParams | None = None,
         *,
         files: UploadFiles | None = None,
+        headers: RequestHeaders | None = None,
     ) -> dict[str, Any]:
-        return await self.request(endpoint, params, files=files)
+        return await self.request(endpoint, params, files=files, headers=headers)

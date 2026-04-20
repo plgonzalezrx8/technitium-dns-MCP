@@ -14,6 +14,7 @@ type ConfirmationMode = Literal["none", "confirm", "destructive", "critical"]
 type ApiScalar = str | int | float | bool
 type RequestParam = ApiScalar | None
 type RequestParams = Mapping[str, RequestParam]
+type RequestHeaders = Mapping[str, str]
 type UploadFile = tuple[str, bytes, str]
 type UploadFiles = Mapping[str, UploadFile]
 

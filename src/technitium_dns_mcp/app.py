@@ -7,6 +7,16 @@ from starlette.responses import JSONResponse
 from technitium_dns_mcp.client.base import TechnitiumClient
 from technitium_dns_mcp.config import Settings, load_settings
 from technitium_dns_mcp.tools import (
+    register_admin_cluster_mutation_tools,
+    register_admin_cluster_tools,
+    register_admin_group_mutation_tools,
+    register_admin_group_tools,
+    register_admin_permission_mutation_tools,
+    register_admin_permission_tools,
+    register_admin_session_mutation_tools,
+    register_admin_session_tools,
+    register_admin_user_mutation_tools,
+    register_admin_user_tools,
     register_allowed_mutation_tools,
     register_allowed_tools,
     register_app_mutation_tools,
@@ -15,6 +25,8 @@ from technitium_dns_mcp.tools import (
     register_blocked_tools,
     register_cache_mutation_tools,
     register_cache_tools,
+    register_dhcp_mutation_tools,
+    register_dhcp_tools,
     register_diagnostic_tools,
     register_dns_client_tools,
     register_settings_mutation_tools,
@@ -61,6 +73,12 @@ def build_mcp_server(
         register_app_tools(mcp, resolved_client)
         register_dns_client_tools(mcp, resolved_client)
         register_settings_tools(mcp, resolved_client)
+        register_dhcp_tools(mcp, resolved_client)
+        register_admin_session_tools(mcp, resolved_client)
+        register_admin_user_tools(mcp, resolved_client)
+        register_admin_group_tools(mcp, resolved_client)
+        register_admin_permission_tools(mcp, resolved_client)
+        register_admin_cluster_tools(mcp, resolved_client)
         if resolved_settings is not None and not resolved_settings.technitium_readonly:
             register_zone_mutation_tools(mcp, resolved_client)
             register_zone_dnssec_mutation_tools(mcp, resolved_client)
@@ -69,6 +87,12 @@ def build_mcp_server(
             register_blocked_mutation_tools(mcp, resolved_client)
             register_app_mutation_tools(mcp, resolved_client)
             register_settings_mutation_tools(mcp, resolved_client)
+            register_dhcp_mutation_tools(mcp, resolved_client)
+            register_admin_session_mutation_tools(mcp, resolved_client)
+            register_admin_user_mutation_tools(mcp, resolved_client)
+            register_admin_group_mutation_tools(mcp, resolved_client)
+            register_admin_permission_mutation_tools(mcp, resolved_client)
+            register_admin_cluster_mutation_tools(mcp, resolved_client)
 
     return mcp
 

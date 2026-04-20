@@ -60,9 +60,18 @@ async def test_call_or_throw_can_disable_ssl_verification(monkeypatch: pytest.Mo
         async def __aexit__(self, exc_type, exc, tb) -> None:  # type: ignore[no-untyped-def]
             return None
 
-        async def post(self, url: str, data: dict[str, str]) -> FakeResponse:
+        async def post(
+            self,
+            url: str,
+            data: dict[str, str],
+            *,
+            files=None,
+            headers=None,
+        ) -> FakeResponse:
             captured["url"] = url
             captured["data"] = data
+            captured["files"] = files
+            captured["headers"] = headers
             return FakeResponse()
 
     monkeypatch.setattr("technitium_dns_mcp.client.base.httpx.AsyncClient", FakeAsyncClient)
@@ -79,6 +88,8 @@ async def test_call_or_throw_can_disable_ssl_verification(monkeypatch: pytest.Mo
         "verify": False,
         "url": "https://technitium.web.lan/api/settings/get",
         "data": {"token": "token-123"},
+        "files": None,
+        "headers": None,
     }
     assert result == {"version": "14.3"}
 
@@ -169,3 +180,30 @@ async def test_download_returns_binary_content_and_metadata(httpx_mock: HTTPXMoc
     assert result.content == b"PK\x03\x04backup-data"
     assert result.content_type == "application/zip"
     assert result.filename == "example_backup.zip"
+
+
+@pytest.mark.asyncio
+async def test_download_supports_custom_headers(httpx_mock: HTTPXMock) -> None:
+    from technitium_dns_mcp.client.base import TechnitiumClient
+
+    httpx_mock.add_response(
+        url="http://192.168.1.248:5380/api/admin/cluster/primary/transferConfig",
+        content=b"PK\x03\x04cluster-data",
+        headers={"content-type": "application/zip"},
+    )
+
+    client = TechnitiumClient(base_url="http://192.168.1.248:5380", token="token-123")
+    result = await client.download(
+        "/api/admin/cluster/primary/transferConfig",
+        {"includeZones": "example.com"},
+        headers={"If-Modified-Since": "Mon, 21 Apr 2025 10:00:00 GMT"},
+    )
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert request.headers["If-Modified-Since"] == "Mon, 21 Apr 2025 10:00:00 GMT"
+    assert parse_qs(request.content.decode()) == {
+        "includeZones": ["example.com"],
+        "token": ["token-123"],
+    }
+    assert result.content == b"PK\x03\x04cluster-data"

@@ -70,9 +70,63 @@ def test_get_endpoint_returns_existing_tool_metadata() -> None:
         ("dns_set_settings", "/api/settings/set", "mutation", "confirm"),
         ("dns_backup_settings", "/api/settings/backup", "admin", "critical"),
         ("dns_restore_settings", "/api/settings/restore", "admin", "critical"),
+        ("dns_list_dhcp_leases", "/api/dhcp/leases/list", "readonly", "none"),
+        (
+            "dns_remove_dhcp_lease",
+            "/api/dhcp/leases/remove",
+            "destructive",
+            "destructive",
+        ),
+        ("dns_get_dhcp_scope", "/api/dhcp/scopes/get", "readonly", "none"),
+        ("dns_set_dhcp_scope", "/api/dhcp/scopes/set", "mutation", "confirm"),
+        ("dns_list_admin_sessions", "/api/admin/sessions/list", "readonly", "none"),
+        (
+            "dns_create_admin_api_token",
+            "/api/admin/sessions/createToken",
+            "admin",
+            "critical",
+        ),
+        ("dns_list_admin_users", "/api/admin/users/list", "readonly", "none"),
+        ("dns_create_admin_user", "/api/admin/users/create", "admin", "critical"),
+        ("dns_get_admin_user", "/api/admin/users/get", "readonly", "none"),
+        ("dns_set_admin_user", "/api/admin/users/set", "admin", "critical"),
+        ("dns_list_admin_groups", "/api/admin/groups/list", "readonly", "none"),
+        ("dns_set_admin_group", "/api/admin/groups/set", "admin", "critical"),
+        (
+            "dns_list_admin_permissions",
+            "/api/admin/permissions/list",
+            "readonly",
+            "none",
+        ),
+        (
+            "dns_set_admin_permission",
+            "/api/admin/permissions/set",
+            "admin",
+            "critical",
+        ),
+        ("dns_get_cluster_state", "/api/admin/cluster/state", "readonly", "none"),
+        ("dns_initialize_cluster", "/api/admin/cluster/init", "admin", "critical"),
+        (
+            "dns_delete_cluster",
+            "/api/admin/cluster/primary/delete",
+            "admin",
+            "critical",
+        ),
+        (
+            "dns_transfer_cluster_config",
+            "/api/admin/cluster/primary/transferConfig",
+            "admin",
+            "critical",
+        ),
+        (
+            "dns_initialize_and_join_cluster",
+            "/api/admin/cluster/initJoin",
+            "admin",
+            "critical",
+        ),
     ],
 )
-def test_get_endpoint_covers_phase1_to_phase3_tools(
+def test_get_endpoint_covers_phase1_to_phase6_tools(
     *, tool_name: str, api_path: str, classification: str, confirmation_mode: str
 ) -> None:
     from technitium_dns_mcp.client.endpoint_catalog import get_endpoint
@@ -109,6 +163,17 @@ def test_list_endpoints_can_filter_by_classification() -> None:
         "dns_get_app_config",
         "dns_resolve_query",
         "dns_get_tsig_key_names",
+        "dns_list_dhcp_leases",
+        "dns_list_dhcp_scopes",
+        "dns_get_dhcp_scope",
+        "dns_list_admin_sessions",
+        "dns_list_admin_users",
+        "dns_get_admin_user",
+        "dns_list_admin_groups",
+        "dns_get_admin_group",
+        "dns_list_admin_permissions",
+        "dns_get_admin_permission",
+        "dns_get_cluster_state",
     } <= readonly_tools
     assert "dns_create_primary_zone" not in readonly_tools
     assert "dns_delete_zone" not in readonly_tools
@@ -134,6 +199,9 @@ def test_list_endpoints_can_filter_destructive_tools() -> None:
         "dns_delete_blocked_zone",
         "dns_flush_blocked_zones",
         "dns_uninstall_app",
+        "dns_remove_dhcp_lease",
+        "dns_remove_dhcp_reserved_lease",
+        "dns_delete_dhcp_scope",
     } <= destructive_tools
 
 
@@ -142,7 +210,34 @@ def test_list_endpoints_can_filter_admin_tools() -> None:
 
     admin_tools = {endpoint.tool_name for endpoint in list_endpoints(classification="admin")}
 
-    assert {"dns_backup_settings", "dns_restore_settings"} <= admin_tools
+    assert {
+        "dns_backup_settings",
+        "dns_restore_settings",
+        "dns_create_admin_api_token",
+        "dns_delete_admin_session",
+        "dns_create_admin_user",
+        "dns_set_admin_user",
+        "dns_delete_admin_user",
+        "dns_create_admin_group",
+        "dns_set_admin_group",
+        "dns_delete_admin_group",
+        "dns_set_admin_permission",
+        "dns_initialize_cluster",
+        "dns_delete_cluster",
+        "dns_join_cluster",
+        "dns_remove_cluster_secondary_node",
+        "dns_delete_cluster_secondary_node",
+        "dns_update_cluster_secondary_node",
+        "dns_transfer_cluster_config",
+        "dns_set_cluster_options",
+        "dns_initialize_and_join_cluster",
+        "dns_leave_cluster",
+        "dns_notify_cluster",
+        "dns_resync_cluster",
+        "dns_update_cluster_primary_node",
+        "dns_promote_to_cluster_primary",
+        "dns_update_cluster_node_ip_addresses",
+    } <= admin_tools
 
 
 def test_get_endpoint_raises_helpful_error_for_unknown_tool() -> None:
