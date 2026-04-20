@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
 def load_settings() -> Settings:
     try:
-        settings = Settings()
+        settings = Settings()  # type: ignore[call-arg]
     except Exception as exc:  # pragma: no cover - pydantic error text is enough
         raise ValueError("TECHNITIUM_URL is required") from exc
 
